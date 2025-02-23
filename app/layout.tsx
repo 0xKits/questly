@@ -1,46 +1,49 @@
 import { Geist } from "next/font/google";
-import { ThemeProvider } from "next-themes";;
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
+import Dock from "@/components/dock";
+import StickyNavbar from "@/components/top-bar";
 
 const defaultUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
+	? `https://${process.env.VERCEL_URL}`
+	: "http://localhost:3000";
 
 export const metadata = {
-  metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
+	metadataBase: new URL(defaultUrl),
+	title: "Next.js and Supabase Starter Kit",
+	description: "The fastest way to build apps with Next.js and Supabase",
 };
 
 const geistSans = Geist({
-  display: "swap",
-  subsets: ["latin"],
+	display: "swap",
+	subsets: ["latin"],
 });
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" className={geistSans.className} suppressHydrationWarning>
-      <body className="bg-background text-foreground">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <main className="min-h-screen flex flex-col items-center">
-            <div className="flex-1 w-full flex flex-col gap-20 items-center">
-              <div className="flex flex-col gap-20 max-w-5xl p-5">
-                {children}
-              </div>
-
-            </div>
-          </main>
-        </ThemeProvider>
-      </body>
-    </html>
-  );
+	return (
+		<html
+			lang="en"
+			className={geistSans.className}
+			suppressHydrationWarning
+		>
+			<body className="bg-background text-foreground">
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="light"
+					enableSystem
+					disableTransitionOnChange
+				>
+					<main className="min-h-screen flex flex-col items-center">
+						<StickyNavbar />
+						<div className="pb-14 pt-14">{children}</div>
+						<Dock />
+					</main>
+				</ThemeProvider>
+			</body>
+		</html>
+	);
 }
