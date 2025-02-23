@@ -4,8 +4,8 @@ import { createClient } from "@/utils/supabase/server";
 import { Message } from "ai";
 
 export default async function Page() {
-	const supabase = await createClient();
 
+	const supabase = await createClient();
 	let user = (await supabase.auth.getUser()).data.user;
 	
 	if (!user) {
@@ -17,7 +17,7 @@ export default async function Page() {
 	}
 
 	const messages = await supabase
-		.from("chat")
+		.from("messages")
 		.select("*")
 		.eq("user", user.id);
 

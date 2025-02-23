@@ -32,28 +32,19 @@ export type Database = {
       }
       chat: {
         Row: {
-          content: string
           created_at: string
-          id: number
-          image: string | null
-          role: string | null
-          user: string | null
+          id: string
+          user: string
         }
         Insert: {
-          content: string
           created_at?: string
-          id?: number
-          image?: string | null
-          role?: string | null
-          user?: string | null
+          id?: string
+          user: string
         }
         Update: {
-          content?: string
           created_at?: string
-          id?: number
-          image?: string | null
-          role?: string | null
-          user?: string | null
+          id?: string
+          user?: string
         }
         Relationships: [
           {
@@ -79,6 +70,41 @@ export type Database = {
           id?: number
         }
         Relationships: []
+      }
+      messages: {
+        Row: {
+          chatid: string
+          content: string
+          created_at: string
+          id: number
+          image: string[]
+          role: string
+        }
+        Insert: {
+          chatid: string
+          content: string
+          created_at?: string
+          id?: number
+          image: string[]
+          role: string
+        }
+        Update: {
+          chatid?: string
+          content?: string
+          created_at?: string
+          id?: number
+          image?: string[]
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_chatid_fkey"
+            columns: ["chatid"]
+            isOneToOne: false
+            referencedRelation: "chat"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

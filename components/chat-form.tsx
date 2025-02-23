@@ -21,7 +21,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 type MessageContent = {
 	text: string;
-	image: string | null;
+	image: string[] | null;
 };
 
 interface ChatFormProps extends React.ComponentProps<"div"> {
@@ -57,6 +57,7 @@ export function ChatForm({
 	const { messages, input, setInput, append } = useChat({
 		api: "/api/chat",
 		initialMessages: [...prevMessages],
+		// initialInput: "You are an assistant that helps students with their projects. A student has asked you to create a project for them. Create a project for the student based on the provided response.",
 		async onFinish(message) {
 			await supabase.from("chat").insert([
 				{
@@ -70,8 +71,8 @@ export function ChatForm({
 
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
-	const [selectedImage, setSelectedImage] = useState<File | null>(null);
-	const [imagePreview, setImagePreview] = useState<string | null>(null);
+	const [selectedImage, setSelectedImage] = useState<File[] | null>(null);
+	const [imagePreview, setImagePreview] = useState<string[] | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
 
 	const scrollToBottom = useCallback(() => {
@@ -121,11 +122,17 @@ export function ChatForm({
 			return;
 		}
 
-		setSelectedImage(file);
+		setSelectedImage((prev) => {
+			if (!prev) prev = [];
+			return [...prev, file];
+		});
 
 		const reader = new FileReader();
 		reader.onloadend = () => {
-			setImagePreview(reader.result as string);
+			setImagePreview((prev) => {
+				if (!prev) prev = [];
+				return [...prev, reader.result as string];
+			});
 		};
 		reader.readAsDataURL(file);
 	}, []);
@@ -150,8 +157,24 @@ export function ChatForm({
 		const file = e.target.files?.[0];
 		if (file) handleImageSelect(file);
 	};
+	const handleRemoveImage = (index: number) => {
+		
+		setSelectedImage((prev) => {
+			if (!prev) return null;
+			const newImages = [...prev];
+			newImages.splice(index, 1);
+			return newImages.length > 0 ? newImages : null;
+		});
+		
+		setImagePreview((prev) => {
+			if (!prev) return null;
+			const newPreviews = [...prev];
+			newPreviews.splice(index, 1);
+			return newPreviews.length > 0 ? newPreviews : null;
+		});
+	};
 
-	const handleRemoveImage = () => {
+	const handleRemoveAllImage = () => {
 		setSelectedImage(null);
 		setImagePreview(null);
 		if (fileInputRef.current) {
@@ -166,19 +189,22 @@ export function ChatForm({
 
 		try {
 			setIsUploading(true);
-			setInput("");
-			handleRemoveImage();
 
-			let imageUrl = null;
+			let imageUrls = [];
 
 			if (selectedImage) {
-				imageUrl = await uploadImage(selectedImage);
+				for (let img of selectedImage) {
+					imageUrls.push(await uploadImage(img));
+				}
 			}
+
+			setInput("");
+			handleRemoveAllImage();
 
 			await supabase.from("chat").insert([
 				{
 					content: input,
-					image: imageUrl,
+					image: imageUrls,
 					user: user.id,
 					role: "user",
 				},
@@ -186,7 +212,7 @@ export function ChatForm({
 
 			const messageContent = JSON.stringify({
 				text: input,
-				image: imageUrl,
+				image: imageUrls,
 			});
 			console.log(messageContent);
 
@@ -227,17 +253,20 @@ export function ChatForm({
 											<Markdown>{text}</Markdown>
 										</div>
 									)}
-									{image && (
-										<div className="mt-2 overflow-hidden rounded-lg">
-											<Image
-												src={image}
-												alt="Uploaded content"
-												width={400}
-												height={300}
-												className="max-w-full"
-											/>
-										</div>
-									)}
+									<div>
+									{image &&
+										image.map((url: string,index) => (
+											<div key={index} className="mt-2 overflow-hidden rounded-lg">
+												<Image
+													src={url}
+													alt="Uploaded content"
+													width={400}
+													height={300}
+													className="max-w-full"
+												/>
+											</div>
+										))}
+									</div >
 								</div>
 							</div>
 						);
@@ -248,23 +277,32 @@ export function ChatForm({
 
 			{/* Input Form */}
 			<div className="border-t bg-white p-4">
-				{imagePreview && (
-					<div className="relative mb-2 inline-block">
-						<img
-							src={imagePreview}
-							alt="Preview"
-							className="h-20 rounded-lg object-contain"
-						/>
-						<button
-							onClick={handleRemoveImage}
-							className="absolute -right-2 -top-2 rounded-full bg-gray-800 p-1 text-white"
-							disabled={isUploading}
-						>
-							<X className="h-4 w-4" />
-						</button>
-					</div>
-				)}
-
+				<div className="flex gap-4">
+					{imagePreview &&
+						imagePreview.map((img, index) => {
+							return (
+								<div
+									key={index}
+									className="relative mb-2 inline-block"
+								>
+									<span>
+										<img
+											src={img}
+											alt="Preview"
+											className="h-20 rounded-lg object-contain"
+										/>
+									</span>
+									<button
+										onClick={() => handleRemoveImage(index)}
+										className="absolute -right-2 -top-2 rounded-full bg-gray-800 p-1 text-white"
+										disabled={isUploading}
+									>
+										<X className="h-4 w-4" />
+									</button>
+								</div>
+							);
+						})}
+				</div>
 				<form onSubmit={handleSubmit} className="flex items-end gap-2 ">
 					<input
 						type="file"
