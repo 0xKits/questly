@@ -30,16 +30,16 @@ export default function RootLayout({
 			className={geistSans.className}
 			suppressHydrationWarning
 		>
-			<body className="bg-background text-foreground">
+			<body className="bg-background text-foreground overflow-y-hidden max-h-screen">
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="light"
 					enableSystem
 					disableTransitionOnChange
 				>
-					<main className="min-h-screen flex flex-col items-center">
+					<main className="flex flex-col items-center  h-screen">
 						<StickyNavbar />
-						<div className="pb-14 pt-14">{children}</div>
+						<div className=" overflow-y-auto h-full">{children}</div>
 						<Dock />
 					</main>
 				</ThemeProvider>

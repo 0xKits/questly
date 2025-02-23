@@ -17,7 +17,7 @@ export default async function Dock() {
 		.single();
 
 	return (
-		<div className="fixed bottom-0 left-0 right-0 bg-background text-white border-t border-black/20">
+		<div className="w-screen bottom-0 left-0 right-0 bg-background text-white border-t border-black/20">
 			<div className="flex justify-around items-center h-16 ">
 				<DockItem
 					icon={<HomeIcon className="h-6 w-6" />}
@@ -27,7 +27,7 @@ export default async function Dock() {
 				<DockItem
 					icon={<SwordIcon className="h-6 w-6" />}
 					label="New Quest"
-					href="/dashboard/quests"
+					href="/dashboard/chat"
 				/>
 				<DockItem
 					icon={<ScrollIcon className="h-6 w-6" />}

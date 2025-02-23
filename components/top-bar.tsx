@@ -10,39 +10,10 @@ import { CreditCard, SearchIcon, Settings, UserCircle } from 'lucide-react'
 
 export default function StickyNavbar() {
 
-    const router = useRouter()
-
-    const [isVisible, setIsVisible] = useState(true)
-    const [lastScrollY, setLastScrollY] = useState(0)
-
-    useEffect(() => {
-        const controlNavbar = () => {
-            if (typeof window !== 'undefined') {
-                if (window.scrollY > lastScrollY) { // if scroll down hide the navbar
-                    setIsVisible(false)
-                } else { // if scroll up show the navbar
-                    setIsVisible(true)
-                }
-
-                // remember current page location to use in the next move
-                setLastScrollY(window.scrollY)
-            }
-        }
-
-        if (typeof window !== 'undefined') {
-            window.addEventListener('scroll', controlNavbar)
-
-            // cleanup function
-            return () => {
-                window.removeEventListener('scroll', controlNavbar)
-            }
-        }
-    }, [lastScrollY])
 
     return (
         <nav
-            className={`z-50 border-b border-black/20 bg-background mb-8 fixed w-full transition-transform duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'
-                }`}
+            className="z-50 border-b w-full  border-black/20   block"
         >
             <div className="bg-background rounded-b-xl px-3 py-3 flex items-start justify-between gap-2">
                 {/* <Link href={"/catalog"} className="flex items-center justify-center rounded-full bg-background h-9 w-9 text-[24px]">
