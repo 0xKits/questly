@@ -149,7 +149,7 @@ export default async function Home() {
               {userQuests &&
                 userQuests.length > 0 &&
                 userQuests.map((quest) => (
-                  <Link key={quest.id} href={`/dashboard/quests/${quest.id}`}>
+                  <Link key={quest.id} href={`/dashboard/profile/quests/${quest.id}`}>
                     <Card className="transition-all hover:shadow-lg hover:border-blue-200">
                       <CardContent className="pt-6">
                         <div className="space-y-3">

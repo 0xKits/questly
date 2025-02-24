@@ -34,6 +34,7 @@ export default function GuildShowcasePage() {
     showcase_name: string;
     project_id: number;
     comments?: string;
+    project?: any;
   } | null>(null);
   const [isGuildDialogOpen, setIsGuildDialogOpen] = useState(false);
   const [isShowcaseDialogOpen, setIsShowcaseDialogOpen] = useState(false);
@@ -58,7 +59,8 @@ export default function GuildShowcasePage() {
   };
 
   const fetchProjects = async () => {
-    const { data } = await supabase.from("projects").select("*");
+    const userId = await getUser();
+    const { data } = await supabase.from("projects").select("*").eq("user",userId ? userId : "");
     setProjects(data || []);
   };
 
@@ -113,7 +115,7 @@ export default function GuildShowcasePage() {
 
     const { data } = await supabase
       .from("showcase")
-      .select("*")
+      .select("*, project:projects(*)")
       .eq("id", showcase_id)
       .single();
 
@@ -282,9 +284,19 @@ export default function GuildShowcasePage() {
             <CardHeader>
               <CardTitle>{selectedShowcase.showcase_name}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">{selectedShowcase.comments}</p>
-              
+            <CardContent className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2">Project Details</h3>
+                <div className="space-y-2">
+                  <p><span className="font-medium">Title:</span> {selectedShowcase.project?.title}</p>
+                  <p><span className="font-medium">Description:</span> {selectedShowcase.project?.description}</p>
+                  <p><span className="font-medium">Status:</span> {selectedShowcase.project?.progress}% </p>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Showcase Comments</h3>
+                <p className="text-gray-600">{selectedShowcase.comments}</p>
+              </div>
             </CardContent>
           </Card>
         ) : (

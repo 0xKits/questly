@@ -1,11 +1,10 @@
 import { createClient } from "@/utils/supabase/server";
-import { HomeIcon, ScrollIcon, SwordIcon, User2Icon } from "lucide-react";
+import { HomeIcon, ScrollIcon, SwordIcon, User2Icon, Handshake} from "lucide-react";
 import Link from "next/link";
 
 export default async function Dock() {
 	const supabase = await createClient();
 	const user = await supabase.auth.getUser();
-
 	if (!user.data.user) {
 		return <div>Not logged in</div>;
 	}
@@ -38,6 +37,11 @@ export default async function Dock() {
 					icon={<User2Icon className="h-6 w-6" />}
 					label="Profile"
 					href={`/dashboard/profile/${profileData?.username}`}
+				/>
+				<DockItem
+					icon={<Handshake className="h-6 w-6" />}
+					label="Guilds"
+					href="/dashboard/guilds"
 				/>
 			</div>
 		</div>
