@@ -8,8 +8,21 @@ import { createClient } from "@/utils/supabase/client";
 
 const supabase = createClient();
 
+interface AchievementConfig {
+  id: string;
+  title: string;
+  description: string;
+  xpRequired?: number;
+  projectsRequired?: number;
+}
+
+interface Achievement extends AchievementConfig {
+  unlocked: boolean;
+  unlock_date: string | null;
+}
+
 // Define achievements based on XP and projects
-const ACHIEVEMENTS_CONFIG = [
+const ACHIEVEMENTS_CONFIG: AchievementConfig[] = [
   {
     id: 'xp_level_1',
     title: "Level 1 Explorer",
@@ -48,7 +61,7 @@ const ACHIEVEMENTS_CONFIG = [
   }
 ];
 
-const AchievementCard = ({ achievement }) => {
+const AchievementCard = ({ achievement }: { achievement: Achievement }) => {
   return (
     <Card className={`mb-4 ${achievement.unlocked ? 'bg-secondary/20' : 'opacity-50'}`}>
       <CardHeader className="flex flex-row items-center gap-4">
@@ -67,7 +80,7 @@ const AchievementCard = ({ achievement }) => {
           <CardDescription>{achievement.description}</CardDescription>
         </div>
       </CardHeader>
-      {achievement.unlocked && (
+      {achievement.unlocked && achievement.unlock_date && (
         <CardContent>
           <p className="text-sm text-muted-foreground">
             Unlocked on {new Date(achievement.unlock_date).toLocaleDateString()}
@@ -79,7 +92,7 @@ const AchievementCard = ({ achievement }) => {
 };
 
 export default function AchievementsPage() {
-  const [achievements, setAchievements] = useState([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -107,20 +120,20 @@ export default function AchievementsPage() {
         const userXP = profile?.xp || 0;
 
         // Process achievements
-        const processedAchievements = ACHIEVEMENTS_CONFIG.map(achievement => {
+        const processedAchievements: Achievement[] = ACHIEVEMENTS_CONFIG.map(achievement => {
           let unlocked = false;
           
           // Check if achievement is unlocked based on type
-          if ('xpRequired' in achievement) {
+          if ('xpRequired' in achievement && achievement.xpRequired) {
             unlocked = userXP >= achievement.xpRequired;
-          } else if ('projectsRequired' in achievement) {
+          } else if ('projectsRequired' in achievement && achievement.projectsRequired) {
             unlocked = completedProjectsCount >= achievement.projectsRequired;
           }
 
           return {
             ...achievement,
             unlocked,
-            unlock_date: unlocked ? new Date().toISOString() : null // You might want to store actual unlock dates in a separate table
+            unlock_date: unlocked ? new Date().toISOString() : null
           };
         });
 
