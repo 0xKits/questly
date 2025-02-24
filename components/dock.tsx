@@ -32,7 +32,7 @@ export default async function Dock() {
 				<DockItem
 					icon={<ScrollIcon className="h-6 w-6" />}
 					label="Your Quests"
-					href="/dashboard/quests"
+					href="/dashboard/profile/quests"
 				/>
 				<DockItem
 					icon={<User2Icon className="h-6 w-6" />}

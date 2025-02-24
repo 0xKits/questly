@@ -25,6 +25,12 @@ export default async function Quests() {
 		return "bg-blue-500";
 	};
 
+	const getProgressBarClass = (progress: number) => {
+		if (progress >= 80) return "[&>div]:bg-green-500";
+		if (progress >= 50) return "[&>div]:bg-yellow-500";
+		return "[&>div]:bg-blue-500";
+	};
+
 	const getStatusBadge = (progress: number) => {
 		if (progress >= 80) return "bg-green-100 text-green-800";
 		if (progress >= 50) return "bg-yellow-100 text-yellow-800";
@@ -50,7 +56,7 @@ export default async function Quests() {
 				{questData && questData.length > 0 ? (
 					questData.map((quest) => (
 						<Link
-							href={`/dashboard/quests/${quest.id}`}
+							href={`/dashboard/profile/quests/${quest.id}`}
 							key={quest.id}
 							className="block transition-transform hover:-translate-y-1"
 						>
@@ -107,7 +113,7 @@ export default async function Quests() {
 									<div className="space-y-2">
 										<Progress
 											value={quest.progress}
-											className={`h-3 ${getProgressColor(quest.progress)} text-red-500`}
+											className={`h-3 ${getProgressBarClass(quest.progress)}`}
 										/>
 									</div>
 								</CardContent>

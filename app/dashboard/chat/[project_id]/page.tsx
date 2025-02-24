@@ -1,13 +1,26 @@
-import ProjectBuilder from "@/components/project-builder";
-import { ChatForm } from "@/components/chat-form";
+import { ChatForm } from "@/components/project-chat-form";
 
 import { createClient } from "@/utils/supabase/server";
 import { Message } from "ai";
 
-export default async function Page() {
+export default async function Page({ params }: { params: { id: string } }) {
+	const projectId = Number(params.id);
+  console.log(projectId);
 	const supabase = await createClient();
 	let user = (await supabase.auth.getUser()).data.user;
-
+	let { data, error } = await supabase
+		.from("projects")
+		.select("*")
+		.eq("id", projectId)
+    .single();
+  console.log(data);
+	if (!data) {
+		return (
+			<div className="w-full h-full flex justify-center items-center">
+				<span>No Project Found!</span>
+			</div>
+		);
+	}
 	if (!user) {
 		return (
 			<div className="w-full h-full flex justify-center items-center">
@@ -17,8 +30,9 @@ export default async function Page() {
 	}
 
 	const messages = await supabase
-		.from("chat")
+		.from("quest_chat")
 		.select("*")
+		.eq("project_id", Number(projectId))
 		.eq("user", user.id);
 
 	const msgs: Message[] = [];
@@ -38,7 +52,7 @@ export default async function Page() {
 
 	return (
 		<div className="flex w-full h-[calc(100vh-8rem)]">
-			<ChatForm user={user} prevMessages={msgs} />
+			<ChatForm user={user} prevMessages={msgs} projectId={projectId} />
 		</div>
 	);
 }

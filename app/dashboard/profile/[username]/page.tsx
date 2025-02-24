@@ -58,6 +58,12 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 		return "bg-blue-500";
 	};
 
+	const getProgressBarClass = (progress: number) => {
+		if (progress >= 80) return "[&>div]:bg-green-500";
+		if (progress >= 50) return "[&>div]:bg-yellow-500";
+		return "[&>div]:bg-blue-500";
+	};
+
 	return (
 		<div className="container mx-auto py-8 space-y-6">
 			<Card className="w-full max-w-4xl mx-auto">
@@ -106,7 +112,7 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 						<h3 className="text-lg font-semibold mb-4">
 							Level Progress
 						</h3>
-						<Progress value={progress} className="h-4 mb-2" />
+						<Progress value={progress} className={`h-4 mb-2 ${getProgressBarClass(progress)}`} />
 						<div className="flex justify-between text-sm">
 							<span>Level {userLevel}</span>
 							<span>
@@ -171,7 +177,7 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 								userQuests.map((project) => (
 									<Card key={project.id}>
 										<Link
-											href={`/dashboard/quests/${project.id}`}
+											href={`/dashboard/profile/quests/${project.id}`}
 										>
 											<CardContent className="pt-6">
 												<div className="flex items-center justify-between mb-2">
@@ -190,7 +196,7 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 												</div>
 												<Progress
 													value={project.progress}
-													className="mb-2"
+													className={`mb-2 ${getProgressBarClass(project.progress)}`}
 												/>
 												<p className="text-md text-gray-500">
 													{project.description ||

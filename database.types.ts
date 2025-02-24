@@ -32,18 +32,27 @@ export type Database = {
       }
       chat: {
         Row: {
+          content: string | null
           created_at: string
           id: string
+          image: string[] | null
+          role: string
           user: string
         }
         Insert: {
+          content?: string | null
           created_at?: string
           id?: string
+          image?: string[] | null
+          role: string
           user: string
         }
         Update: {
+          content?: string | null
           created_at?: string
           id?: string
+          image?: string[] | null
+          role?: string
           user?: string
         }
         Relationships: [
@@ -56,20 +65,70 @@ export type Database = {
           },
         ]
       }
-      guilds: {
+      guild_showcase: {
         Row: {
           created_at: string
+          guild_id: number | null
           id: number
+          showcase_id: string | null
         }
         Insert: {
           created_at?: string
+          guild_id?: number | null
           id?: number
+          showcase_id?: string | null
         }
         Update: {
           created_at?: string
+          guild_id?: number | null
           id?: number
+          showcase_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guild_channels_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_showcase_showcase_id_fkey"
+            columns: ["showcase_id"]
+            isOneToOne: false
+            referencedRelation: "showcase"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guilds: {
+        Row: {
+          created_at: string
+          guild_name: string | null
+          id: number
+          owner: string | null
+        }
+        Insert: {
+          created_at?: string
+          guild_name?: string | null
+          id?: number
+          owner?: string | null
+        }
+        Update: {
+          created_at?: string
+          guild_name?: string | null
+          id?: number
+          owner?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guilds_user_fkey"
+            columns: ["owner"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -77,7 +136,7 @@ export type Database = {
           content: string
           created_at: string
           id: number
-          image: string[]
+          image: string[] | null
           role: string
         }
         Insert: {
@@ -85,7 +144,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: number
-          image: string[]
+          image?: string[] | null
           role: string
         }
         Update: {
@@ -93,7 +152,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: number
-          image?: string[]
+          image?: string[] | null
           role?: string
         }
         Relationships: [
@@ -230,6 +289,90 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "projects_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quest_chat: {
+        Row: {
+          content: string | null
+          id: number
+          image: string[] | null
+          project_id: number | null
+          role: string | null
+          user: string | null
+        }
+        Insert: {
+          content?: string | null
+          id?: number
+          image?: string[] | null
+          project_id?: number | null
+          role?: string | null
+          user?: string | null
+        }
+        Update: {
+          content?: string | null
+          id?: number
+          image?: string[] | null
+          project_id?: number | null
+          role?: string | null
+          user?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_chat_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quest_chat_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      showcase: {
+        Row: {
+          comments: string | null
+          created_at: string
+          id: string
+          project_id: number | null
+          showcase_name: string | null
+          user: string | null
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string
+          id?: string
+          project_id?: number | null
+          showcase_name?: string | null
+          user?: string | null
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string
+          id?: string
+          project_id?: number | null
+          showcase_name?: string | null
+          user?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "showcase_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "showcase_user_fkey"
             columns: ["user"]
             isOneToOne: false
             referencedRelation: "profiles"

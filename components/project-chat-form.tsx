@@ -28,6 +28,7 @@ type MessageContent = {
 interface ChatFormProps extends React.ComponentProps<"div"> {
 	prevMessages: Message[];
 	user: User;
+	projectId: number;
 }
 
 const getFileExtension = (file: File): string => {
@@ -53,6 +54,7 @@ export function ChatForm({
 	className,
 	prevMessages,
 	user,
+	projectId,
 	...props
 }: ChatFormProps) {
 	const [initialPrompt, setInitialPrompt] = useState<{
@@ -64,40 +66,41 @@ export function ChatForm({
 		api: "/api/chat",
 		initialMessages: [...prevMessages],
 		async onFinish(message) {
-			await supabase.from("chat").insert([
+			await supabase.from("quest_chat").insert([
 				{
 					content: message.content.toString(),
 					user: user.id,
 					role: message.role,
+					project_id: projectId,
 				},
 			]);
 		},
 	});
 
-	useEffect(() => {
-		const submitInitialPrompt = async () => {
-			await supabase.from("chat").insert([
-				{
-					content: initialPrompt?.message,
-					image: initialPrompt?.images,
-					user: user.id,
-					role: "user",
-				},
-			]);
+	// useEffect(() => {
+	// 	const submitInitialPrompt = async () => {
+	// 		await supabase.from("chat").insert([
+	// 			{
+	// 				content: initialPrompt?.message,
+	// 				image: initialPrompt?.images,
+	// 				user: user.id,
+	// 				role: "user",
+	// 			},
+	// 		]);
 
-			const messageContent = JSON.stringify({
-				text: initialPrompt?.message,
-				image: initialPrompt?.images,
-			});
-			console.log(messageContent);
+	// 		const messageContent = JSON.stringify({
+	// 			text: initialPrompt?.message,
+	// 			image: initialPrompt?.images,
+	// 		});
+	// 		console.log(messageContent);
 
-			await append({ content: messageContent, role: "user" });
-		};
+	// 		await append({ content: messageContent, role: "user" });
+	// 	};
 
-		if (initialPrompt) {
-			submitInitialPrompt();
-		}
-	}, [initialPrompt]);
+	// 	if (initialPrompt) {
+	// 		submitInitialPrompt();
+	// 	}
+	// }, [initialPrompt]);
 
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -231,12 +234,13 @@ export function ChatForm({
 			setInput("");
 			handleRemoveAllImage();
 
-			await supabase.from("chat").insert([
+			await supabase.from("quest_chat").insert([
 				{
 					content: input,
 					image: imageUrls,
 					user: user.id,
 					role: "user",
+					project_id: projectId
 				},
 			]);
 
@@ -256,144 +260,130 @@ export function ChatForm({
 	};
 
 	return (
-		<div className="flex flex-col w-screen h-full bg-gradient-to-b from-gray-50 to-white">
-			{!initialPrompt && (
-				<ProjectBuilder setInitialPrompt={setInitialPrompt} />
-			)}
-			{initialPrompt && (
-				<>
-					{/* Messages Container */}
-					<div className="flex-1 overflow-y-auto p-6">
-						<div className="flex flex-col gap-8 max-w-4xl mx-auto">
-							{messages.map((message, index) => {
-								const { text, image } = parseMessageContent(message);
-								return (
-									<div
-										key={index}
-										className={`flex ${
-											message.role === "user"
-												? "justify-end"
-												: "justify-start"
-										}`}
-									>
-										<div
-											className={`max-w-[80%] rounded-2xl p-4 shadow-sm transition-all ${
-												message.role === "user"
-													? "bg-blue-500 text-white"
-													: "bg-white border border-gray-100 text-gray-800"
-											}`}
-										>
-											{text && (
-												<div className="text-sm leading-relaxed">
-													<Markdown>{text}</Markdown>
-												</div>
-											)}
-											<div>
-												{image &&
-													image.map(
-														(url: string, index) => (
-															<div
-																key={index}
-																className="mt-3 overflow-hidden rounded-xl border shadow-sm"
-															>
-																<Image
-																	src={url}
-																	alt="Uploaded content"
-																	width={400}
-																	height={300}
-																	className="max-w-full hover:scale-[1.02] transition-transform duration-200"
-																/>
-															</div>
-														)
-													)}
-											</div>
+		<div className="flex flex-col w-screen h-full bg-gray-50">
+			{/* Messages Container */}
+			<div className="flex-1 overflow-y-auto p-4">
+				<div className="flex flex-col gap-6">
+					{messages.map((message, index) => {
+						const { text, image } = parseMessageContent(message);
+						return (
+							<div
+								key={index}
+								className={`flex ${
+									message.role === "user"
+										? "justify-end"
+										: "justify-start"
+								}`}
+							>
+								<div
+									className={`max-w-[80%] rounded-lg p-4 ${
+										message.role === "user"
+											? "bg-blue-500 text-white"
+											: "bg-slate-200 text-gray-800"
+									}`}
+								>
+									{text && (
+										<div className="text-sm">
+											<Markdown>{text}</Markdown>
 										</div>
-									</div>
-								);
-							})}
-							<div ref={messagesEndRef} />
-						</div>
-					</div>
-
-					{/* Input Form */}
-					<div className="border-t bg-white p-6 shadow-[0_-1px_10px_rgba(0,0,0,0.05)]">
-						<div className="max-w-4xl mx-auto">
-							<div className="flex gap-3 flex-wrap">
-								{imagePreview &&
-									imagePreview.map((img, index) => {
-										return (
-											<div
-												key={index}
-												className="relative group"
-											>
-												<div className="overflow-hidden rounded-xl border shadow-sm">
-													<img
-														src={img}
-														alt="Preview"
-														className="h-24 w-24 object-cover"
+									)}
+									<div>
+										{image &&
+											image.map((url: string, index) => (
+												<div
+													key={index}
+													className="mt-2 overflow-hidden rounded-lg"
+												>
+													<Image
+														src={url}
+														alt="Uploaded content"
+														width={400}
+														height={300}
+														className="max-w-full"
 													/>
 												</div>
-												<button
-													onClick={() => handleRemoveImage(index)}
-													className="absolute -right-2 -top-2 rounded-full bg-gray-900/90 p-1.5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-													disabled={isUploading}
-												>
-													<X className="h-3.5 w-3.5" />
-												</button>
-											</div>
-										);
-									})}
+											))}
+									</div>
+								</div>
 							</div>
-							<form
-								onSubmit={handleSubmit}
-								className="flex items-end gap-2 mt-4"
-							>
-								<input
-									type="file"
-									ref={fileInputRef}
-									onChange={handleFileChange}
-									accept="image/*"
-									className="hidden"
-									disabled={isUploading}
-								/>
+						);
+					})}
+					<div ref={messagesEndRef} />
+				</div>
+			</div>
 
-								<button
-									type="button"
-									onClick={() => fileInputRef.current?.click()}
-									className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-gray-100 transition-colors duration-200"
-									disabled={isUploading}
+			{/* Input Form */}
+			<div className="border-t bg-white p-4">
+				<div className="flex gap-4">
+					{imagePreview &&
+						imagePreview.map((img, index) => {
+							return (
+								<div
+									key={index}
+									className="relative mb-2 inline-block"
 								>
-									<ImagePlus className="h-5 w-5 text-gray-600" />
-								</button>
+									<span>
+										<img
+											src={img}
+											alt="Preview"
+											className="h-20 rounded-lg object-contain"
+										/>
+									</span>
+									<button
+										onClick={() => handleRemoveImage(index)}
+										className="absolute -right-2 -top-2 rounded-full bg-gray-800 p-1 text-white"
+										disabled={isUploading}
+									>
+										<X className="h-4 w-4" />
+									</button>
+								</div>
+							);
+						})}
+				</div>
+				<form onSubmit={handleSubmit} className="flex items-end gap-2 ">
+					<input
+						type="file"
+						ref={fileInputRef}
+						onChange={handleFileChange}
+						accept="image/*"
+						className="hidden"
+						disabled={isUploading}
+					/>
 
-								<textarea
-									value={input}
-									onChange={(e) => setInput(e.target.value)}
-									onPaste={handlePaste}
-									placeholder="Type a message..."
-									className="flex-1 resize-none rounded-2xl border border-gray-200 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200"
-									rows={1}
-									disabled={isUploading}
-									onKeyDown={(e) => {
-										if (e.key === "Enter" && !e.shiftKey) {
-											e.preventDefault();
-											handleSubmit(e);
-										}
-									}}
-								/>
+					<button
+						type="button"
+						onClick={() => fileInputRef.current?.click()}
+						className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
+						disabled={isUploading}
+					>
+						<ImagePlus className="h-5 w-5 text-gray-500" />
+					</button>
 
-								<button
-									type="submit"
-									className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:hover:bg-blue-500 transition-colors duration-200"
-									disabled={!input.trim() || isUploading}
-								>
-									<Send className="h-5 w-5" />
-								</button>
-							</form>
-						</div>
-					</div>
-				</>
-			)}
+					<textarea
+						value={input}
+						onChange={(e) => setInput(e.target.value)}
+						onPaste={handlePaste}
+						placeholder="Type a message..."
+						className="flex-1 resize-none rounded-lg border border-gray-200 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+						rows={1}
+						disabled={isUploading}
+						onKeyDown={(e) => {
+							if (e.key === "Enter" && !e.shiftKey) {
+								e.preventDefault();
+								handleSubmit(e);
+							}
+						}}
+					/>
+
+					<button
+						type="submit"
+						className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600 disabled:grayscale"
+						disabled={!input.trim() || isUploading}
+					>
+						<Send className="h-5 w-5" />
+					</button>
+				</form>
+			</div>
 		</div>
 	);
 }

@@ -35,6 +35,12 @@ export default async function Home() {
     return "bg-blue-500";
   };
 
+  const getProgressBarClass = (progress: number) => {
+    if (progress >= 80) return "[&>div]:bg-green-500";
+    if (progress >= 50) return "[&>div]:bg-yellow-500";
+    return "[&>div]:bg-blue-500";
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {userData?.username ? null : <Onboarding />}
@@ -102,7 +108,11 @@ export default async function Home() {
                           (q) => q.id == userData.current_project
                         )?.progress
                       }
-                      className="h-3 bg-blue-100"
+                      className={`h-3 ${getProgressBarClass(
+                        userQuests?.find(
+                          (q) => q.id == userData.current_project
+                        )?.progress || 0
+                      )}`}
                     />
                   </div>
                 </CardContent>
@@ -160,7 +170,7 @@ export default async function Home() {
                           </div>
                           <Progress
                             value={quest.progress}
-                            className={`h-2 ${getProgressColor(quest.progress)}`}
+                            className={`h-2 ${getProgressBarClass(quest.progress)}`}
                           />
                         </div>
                       </CardContent>
