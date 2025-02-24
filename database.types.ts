@@ -37,6 +37,7 @@ export type Database = {
           id: string
           image: string[] | null
           role: string
+          session: string | null
           user: string
         }
         Insert: {
@@ -45,6 +46,7 @@ export type Database = {
           id?: string
           image?: string[] | null
           role: string
+          session?: string | null
           user: string
         }
         Update: {
@@ -53,6 +55,7 @@ export type Database = {
           id?: string
           image?: string[] | null
           role?: string
+          session?: string | null
           user?: string
         }
         Relationships: [

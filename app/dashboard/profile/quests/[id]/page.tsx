@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CalendarDays, CheckCircle2, Clock, Target, TargetIcon, Trophy, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CalendarDays, CheckCircle2, Clock, MessageSquareMore, Target, TargetIcon, Trophy, User } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 interface ProjectData {
 	created_at: string;
@@ -29,6 +31,7 @@ interface TaskData {
 interface ProfileData {
 	id: string;
 	username: string;
+	xp: number;
 }
 
 export default function ProjectStatus({
@@ -36,6 +39,7 @@ export default function ProjectStatus({
 }: {
 	params: Promise<{ id: string }>;
 }) {
+	const router = useRouter();
 	const [projectId, setProjectId] = useState<number | null>(null);
 	const [projectData, setProjectData] = useState<ProjectData | null>(null);
 	const [tasksData, setTasksData] = useState<TaskData[] | null>(null);
@@ -106,19 +110,34 @@ export default function ProjectStatus({
 	const handleTaskToggle = async (taskId: number) => {
 		try {
 			const taskToUpdate = tasksData?.find((task) => task.id === taskId);
-			if (!taskToUpdate) return;
+			if (!taskToUpdate || !projectData?.user) return;
 
 			const newCompletedState = !taskToUpdate.completed;
 
-			// Update in Supabase
-			const { error } = await supabase
+			// Update task completion in Supabase
+			const { error: taskError } = await supabase
 				.from("project_roadmap")
 				.update({ completed: newCompletedState })
 				.eq("id", taskId);
 
-			if (error) throw error;
+			if (taskError) throw taskError;
+			
+			
+			// Update XP in profiles table
+			const xpChange = newCompletedState ? 25 : -25;
+			const { error: profileError } = await supabase
+				.from("profiles")
+				.update({ xp: (profileData?.xp || 0) + xpChange })
+				.eq("id", projectData.user);
 
-			// Update local state
+			if (profileError) throw profileError;
+
+			// Update local profile data
+			setProfileData(prev => 
+				prev ? { ...prev, xp: (prev.xp || 0) + xpChange } : null
+			);
+
+			// Update local tasks data
 			setTasksData(
 				(prevTasks) =>
 					prevTasks?.map((task) =>
@@ -171,6 +190,10 @@ export default function ProjectStatus({
 		return "text-blue-600";
 	};
 
+	const handleQuestHelperClick = () => {
+		router.push(`/dashboard/chat/${projectId}`);
+	};
+
 	if (isLoading) {
 		return (
 			<div className="min-h-screen w-full flex items-center justify-center">
@@ -213,15 +236,24 @@ export default function ProjectStatus({
 								</div>
 								<p className="text-gray-600">{projectData.description}</p>
 							</div>
-							<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 text-sm">
-								<div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
-									<User size={16} className="text-blue-500" />
-									<span className="text-blue-700">{profileData?.username}</span>
+							<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+								<div className="flex items-center gap-4">
+									<div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+										<User size={16} className="text-blue-500" />
+										<span className="text-blue-700">{profileData?.username}</span>
+									</div>
+									<div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+										<CalendarDays size={16} className="text-blue-500" />
+										<span className="text-blue-700">{formatDate(projectData.created_at)}</span>
+									</div>
 								</div>
-								<div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
-									<CalendarDays size={16} className="text-blue-500" />
-									<span className="text-blue-700">{formatDate(projectData.created_at)}</span>
-								</div>
+								<Button
+									onClick={handleQuestHelperClick}
+									className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 w-full"
+								>
+									<MessageSquareMore className="h-4 w-4" />
+									Quest Helper
+								</Button>
 							</div>
 						</div>
 					</CardHeader>

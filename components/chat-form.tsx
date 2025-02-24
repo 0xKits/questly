@@ -28,6 +28,7 @@ type MessageContent = {
 interface ChatFormProps extends React.ComponentProps<"div"> {
 	prevMessages: Message[];
 	user: User;
+	session: string;
 }
 
 const getFileExtension = (file: File): string => {
@@ -53,6 +54,7 @@ export function ChatForm({
 	className,
 	prevMessages,
 	user,
+	session,
 	...props
 }: ChatFormProps) {
 	const [initialPrompt, setInitialPrompt] = useState<{
@@ -69,6 +71,7 @@ export function ChatForm({
 					content: message.content.toString(),
 					user: user.id,
 					role: message.role,
+					session: session
 				},
 			]);
 		},
@@ -82,6 +85,7 @@ export function ChatForm({
 					image: initialPrompt?.images,
 					user: user.id,
 					role: "user",
+					session: session
 				},
 			]);
 
@@ -237,6 +241,7 @@ export function ChatForm({
 					image: imageUrls,
 					user: user.id,
 					role: "user",
+					session: session
 				},
 			]);
 

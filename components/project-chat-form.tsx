@@ -57,13 +57,13 @@ export function ChatForm({
 	projectId,
 	...props
 }: ChatFormProps) {
-	const [initialPrompt, setInitialPrompt] = useState<{
-		message?: string;
-		images?: string[];
-	} | null>(null);
+	// const [initialPrompt, setInitialPrompt] = useState<{
+	// 	message?: string;
+	// 	images?: string[];
+	// } | null>(null);
 
 	const { messages, input, setInput, append } = useChat({
-		api: "/api/chat",
+		api: "/api/quest/chat",
 		initialMessages: [...prevMessages],
 		async onFinish(message) {
 			await supabase.from("quest_chat").insert([

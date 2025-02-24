@@ -14,8 +14,99 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
 import EditProfileDialog from "./EditProfileDialog";
+
+// Achievement configuration
+const ACHIEVEMENTS_CONFIG = [
+	{
+		id: "xp_level_1",
+		title: "Level 1 Explorer",
+		description: "Reached Level 1 (100 XP)",
+		xpRequired: 100,
+		icon: Trophy,
+	},
+	{
+		id: "xp_level_5",
+		title: "Level 5 Veteran",
+		description: "Reached Level 5 (500 XP)",
+		xpRequired: 500,
+		icon: Medal,
+	},
+	{
+		id: "xp_level_10",
+		title: "Level 10 Master",
+		description: "Reached Level 10 (1000 XP)",
+		xpRequired: 1000,
+		icon: Star,
+	},
+	{
+		id: "first_project",
+		title: "Project Beginner",
+		description: "Completed your first project",
+		projectsRequired: 1,
+		icon: Target,
+	},
+	{
+		id: "five_projects",
+		title: "Project Enthusiast",
+		description: "Completed 5 projects",
+		projectsRequired: 5,
+		icon: Gamepad2,
+	},
+	{
+		id: "ten_projects",
+		title: "Project Master",
+		description: "Completed 10 projects",
+		projectsRequired: 10,
+		icon: Trophy,
+	},
+];
+
+type Achievement = {
+	id: string;
+	title: string;
+	description: string;
+	icon: React.ElementType;
+	unlocked: boolean;
+	unlock_date: string | null;
+	xpRequired?: number;
+	projectsRequired?: number;
+};
+
+const AchievementCard = ({ achievement }: { achievement: Achievement }) => (
+	<Card
+		className={`mb-4 ${achievement.unlocked ? "bg-secondary/20" : "opacity-50"}`}
+	>
+		<CardContent className="pt-6">
+			<div className="flex items-center gap-3">
+				<achievement.icon className="w-6 h-6 text-yellow-500" />
+				<div>
+					<div className="font-semibold">
+						{achievement.title}
+						{achievement.unlocked && (
+							<Badge variant="secondary" className="ml-2">
+								Unlocked
+							</Badge>
+						)}
+					</div>
+					<div className="text-sm text-muted-foreground">
+						{achievement.description}
+					</div>
+					{achievement.unlocked && (
+						<div className="text-sm text-muted-foreground">
+							Unlocked on{" "}
+							{new Date(
+								achievement.unlock_date as string
+							).toLocaleDateString()}
+						</div>
+					)}
+				</div>
+			</div>
+		</CardContent>
+	</Card>
+);
 
 async function Profile({ params }: { params: Promise<{ username: string }> }) {
 	const { username } = await params;
@@ -41,16 +132,31 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 		.select("*")
 		.eq("user", userData.id);
 
+	// Calculate completed projects
+	const completedProjects =
+		userQuests?.filter((project) => project.progress === 100) || [];
+	const completedProjectsCount = completedProjects.length;
+
+	// Process achievements
+	const processedAchievements = ACHIEVEMENTS_CONFIG.map((achievement) => {
+		let unlocked = false;
+
+		if ("xpRequired" in achievement) {
+			unlocked = userData.xp >= (achievement.xpRequired as number);
+		} else if ("projectsRequired" in achievement) {
+			unlocked = completedProjectsCount >= achievement.projectsRequired;
+		}
+
+		return {
+			...achievement,
+			unlocked,
+			unlock_date: unlocked ? new Date().toISOString() : null,
+		};
+	});
+
 	const imageUrl = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${userData.username}`;
 	const userLevel = calculateLevel(userData.xp);
 	const progress = progressToNextLevel(userData.xp);
-
-	// Mock achievements - in real app, fetch from database
-	const achievements = [
-		{ icon: Trophy, label: "First Project", earned: true },
-		{ icon: Star, label: "Rising Star", earned: true },
-		{ icon: Target, label: "Goal Setter", earned: false },
-	];
 
 	const getProjectStatusColor = (progress: number) => {
 		if (progress >= 80) return "bg-green-500";
@@ -101,7 +207,6 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 								currentBio={userData.bio}
 								currentPinnedProject={userData.current_project}
 								userProjects={userQuests || []}
-								
 							/>
 						)}
 					</div>
@@ -112,7 +217,10 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 						<h3 className="text-lg font-semibold mb-4">
 							Level Progress
 						</h3>
-						<Progress value={progress} className={`h-4 mb-2 ${getProgressBarClass(progress)}`} />
+						<Progress
+							value={progress}
+							className={`h-4 mb-2 ${getProgressBarClass(progress)}`}
+						/>
 						<div className="flex justify-between text-sm">
 							<span>Level {userLevel}</span>
 							<span>
@@ -122,7 +230,7 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 					</div>
 
 					{/* Stats Grid */}
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 						<Card>
 							<CardContent className="pt-6">
 								<div className="text-center">
@@ -141,9 +249,23 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 								<div className="text-center">
 									<Trophy className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
 									<div className="text-2xl font-bold">
+										{completedProjectsCount}
+									</div>
+									<div className="text-sm text-gray-500">
+										Completed Projects
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className="pt-6">
+								<div className="text-center">
+									<Star className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
+									<div className="text-2xl font-bold">
 										{
-											achievements.filter((a) => a.earned)
-												.length
+											processedAchievements.filter(
+												(a) => a.unlocked
+											).length
 										}
 									</div>
 									<div className="text-sm text-gray-500">
@@ -224,35 +346,32 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 
 					{/* Achievements Section */}
 					<div>
-						<h3 className="text-xl font-semibold mb-4">
-							Achievements
-						</h3>
-						<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-							{achievements.map((achievement, index) => (
-								<Card
-									key={index}
-									className={
-										!achievement.earned ? "opacity-50" : ""
-									}
-								>
-									<CardContent className="pt-6">
-										<div className="flex items-center gap-3">
-											<achievement.icon className="w-6 h-6 text-yellow-500" />
-											<div>
-												<div className="font-semibold">
-													{achievement.label}
-												</div>
-												<div className="text-sm text-gray-500">
-													{achievement.earned
-														? "Earned"
-														: "Locked"}
-												</div>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-							))}
+						<div className="flex items-center justify-between mb-4">
+							<h3 className="text-xl font-semibold">
+								Achievements
+							</h3>
+							<div className="text-right">
+								<p className="text-lg font-semibold">
+									{
+										processedAchievements.filter(
+											(a) => a.unlocked
+										).length
+									}{" "}
+									/ {processedAchievements.length}
+								</p>
+								<p className="text-sm text-muted-foreground">
+									Achievements Unlocked
+								</p>
+							</div>
 						</div>
+						<ScrollArea className="h-[400px] rounded-md border p-4">
+							{processedAchievements.map((achievement) => (
+								<AchievementCard
+									key={achievement.id}
+									achievement={achievement}
+								/>
+							))}
+						</ScrollArea>
 					</div>
 				</CardContent>
 			</Card>

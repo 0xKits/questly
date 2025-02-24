@@ -4,6 +4,8 @@ import { streamText, tool } from "ai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
 	const supabase = await createClient();
 
@@ -11,13 +13,15 @@ export async function POST(req: Request) {
 		const { messages } = await req.json();
 		const initialMessages = messages.slice(0, -1);
 		const currentMessage = messages[messages.length - 1];
+		let questCreated: boolean = false;
+		let createdQuestId: number | null = null;
 
 		let parsedContent;
 		let imageUrls = null;
 
 		try {
 			parsedContent = JSON.parse(currentMessage.content);
-			imageUrls = parsedContent.image;
+			imageUrls = parsedContent.image; // Now directly using the URL
 		} catch {
 			parsedContent = { text: currentMessage.content };
 		}
@@ -38,6 +42,7 @@ export async function POST(req: Request) {
 					type: "image",
 					image: imageUrl,
 				});
+				console.log(imageUrl);
 			}
 		}
 
@@ -91,7 +96,7 @@ Guidelines:
 			tools: {
 				createQuest: tool({
 					description:
-						"Create a quest (project) for the user based on the provided response...",
+						"Create a quest (project) for the user based on the provided response. First, ask the user whether they want to accept the quest. If they do, then call this tool. This tool will add the quest to the database on behalf of the user",
 					parameters: z.object({
 						title: z
 							.string()
@@ -110,7 +115,6 @@ Guidelines:
 						if (!user.data.user) {
 							throw new Error("User not found");
 						}
-
 						const {
 							data: questCreationResponse,
 							error: questCreationError,
@@ -127,72 +131,45 @@ Guidelines:
 							throw questCreationError;
 						}
 
-						const { error: tasksCreationError } = await supabase
-							.from("project_roadmap")
-							.insert(
-								tasks.map((t: any, i: any) => ({
+						const {
+							data: tasksCreationResponse,
+							error: tasksCreationError,
+						} = await supabase.from("project_roadmap").insert(
+							tasks.map((t, i) => {
+								return {
 									project: questCreationResponse[0].id,
 									task: t,
 									position: i,
 									completed: false,
-								}))
-							);
-
-						// Format messages for quest_chat insertion
-						const formattedMessages = messageContent.map((msg) => {
-							let content;
-							let images = null;
-
-							if (Array.isArray(msg.content)) {
-								const textContent = msg.content
-									.filter(
-										(item: { type: string }) =>
-											item.type === "text"
-									)
-									.map((item: { text: any }) => item.text)
-									.join("\n");
-
-								const imageContent = msg.content
-									.filter(
-										(item: { type: string }) =>
-											item.type === "image"
-									)
-									.map((item: { image: any }) => item.image);
-
-								content = textContent;
-								images =
-									imageContent.length > 0
-										? imageContent
-										: null;
-							} else {
-								try {
-									const parsed = JSON.parse(
-										msg.content.toString()
-									);
-									content = parsed.text || msg.content;
-									images = parsed.image || null;
-								} catch {
-									content = msg.content.toString();
-								}
-							}
-
-							return {
-								content: content,
-								image: images,
-								role: msg.role,
-								project_id: questCreationResponse[0].id,
-								user: user.data.user?.id,
-							};
-						});
+								};
+							})
+						);
 
 						const { error: chatCreationError } = await supabase
 							.from("quest_chat")
-							.insert(formattedMessages);
-
+							.insert(
+								messageContent.map((msg) => ({
+									content: msg.content,
+									image: msg.image,
+									role: msg.role,
+									project_id: questCreationResponse[0].id,
+									user: user.data.user?.id,
+								}))
+							);
 						if (chatCreationError) {
 							throw chatCreationError;
 						}
+						// const { error: chatDeleteError } = await supabase
+						// 	.from("chat")
+						// 	.delete()
+						// 	.eq("user", user.data.user.id);
 
+						// if (chatDeleteError) {
+						// 	console.error(
+						// 		"Error deleting chat messages:",
+						// 		chatDeleteError
+						// 	);
+						// }
 						if (!tasksCreationError) {
 							return { message: "Quest created successfully" };
 						}
@@ -201,9 +178,15 @@ Guidelines:
 			},
 		});
 
+		// if (questCreated && createdQuestId) {
+		// 	return NextResponse.redirect(
+		// 		new URL(`/dashboard/profile/quests/${createdQuestId}`, req.url)
+		// 	);
+		// }
 		return result.toDataStreamResponse();
 	} catch (error) {
 		console.error("Error processing request:", error);
+
 		return new Response(
 			JSON.stringify({ error: "Failed to process request" }),
 			{ status: 500 }
