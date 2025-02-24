@@ -79,16 +79,14 @@ const AchievementCard = ({ achievement }: { achievement: Achievement }) => (
 	<Card
 		className={`mb-4 ${achievement.unlocked ? "bg-secondary/20" : "opacity-50"}`}
 	>
-		<CardContent className="pt-6">
-			<div className="flex items-center gap-3">
+		<CardContent className="pt-4 sm:pt-6">
+			<div className="flex items-start sm:items-center gap-3 flex-col sm:flex-row">
 				<achievement.icon className="w-6 h-6 text-yellow-500" />
-				<div>
-					<div className="font-semibold">
+				<div className="space-y-1">
+					<div className="font-semibold flex items-center flex-wrap gap-2">
 						{achievement.title}
 						{achievement.unlocked && (
-							<Badge variant="secondary" className="ml-2">
-								Unlocked
-							</Badge>
+							<Badge variant="secondary">Unlocked</Badge>
 						)}
 					</div>
 					<div className="text-sm text-muted-foreground">
@@ -169,14 +167,13 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 		if (progress >= 50) return "[&>div]:bg-yellow-500";
 		return "[&>div]:bg-blue-500";
 	};
-
 	return (
-		<div className="container mx-auto py-8 space-y-6">
+		<div className="container mx-auto px-4 py-6 sm:py-8 space-y-6">
 			<Card className="w-full max-w-4xl mx-auto">
 				<CardHeader>
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-4">
-							<Avatar className="h-20 w-20 ring-2 ring-offset-2 ring-blue-500">
+					<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+						<div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+							<Avatar className="h-16 w-16 sm:h-20 sm:w-20 ring-2 ring-offset-2 ring-blue-500">
 								<AvatarImage
 									src={imageUrl}
 									alt={userData.username}
@@ -185,10 +182,10 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 									{userData.username?.substring(0, 2)}
 								</AvatarFallback>
 							</Avatar>
-							<div>
-								<CardTitle className="text-3xl flex items-center gap-2 flex-col sm:flex-row">
+							<div className="text-center sm:text-left">
+								<CardTitle className="text-2xl sm:text-3xl flex items-center gap-2 justify-center sm:justify-start flex-wrap">
 									{userData.username}
-									<Badge className="ml-2 bg-blue-500">
+									<Badge className="bg-blue-500">
 										Level {userLevel}
 									</Badge>
 								</CardTitle>
@@ -201,19 +198,23 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 							</div>
 						</div>
 						{userData.id === user.data.user.id && (
-							<EditProfileDialog
-								userId={userData.id}
-								currentUsername={userData.username}
-								currentBio={userData.bio}
-								currentPinnedProject={userData.current_project}
-								userProjects={userQuests || []}
-							/>
+							<div className="flex justify-center sm:justify-end">
+								<EditProfileDialog
+									userId={userData.id}
+									currentUsername={userData.username}
+									currentBio={userData.bio}
+									currentPinnedProject={
+										userData.current_project
+									}
+									userProjects={userQuests || []}
+								/>
+							</div>
 						)}
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-6">
 					{/* Level Progress Section */}
-					<div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+					<div className="bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg">
 						<h3 className="text-lg font-semibold mb-4">
 							Level Progress
 						</h3>
@@ -230,58 +231,58 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 					</div>
 
 					{/* Stats Grid */}
-					<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+					<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
 						<Card>
-							<CardContent className="pt-6">
+							<CardContent className="pt-4 sm:pt-6">
 								<div className="text-center">
-									<Gamepad2 className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-									<div className="text-2xl font-bold">
+									<Gamepad2 className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 text-blue-500" />
+									<div className="text-xl sm:text-2xl font-bold">
 										{userQuests?.length || 0}
 									</div>
-									<div className="text-sm text-gray-500">
+									<div className="text-xs sm:text-sm text-gray-500">
 										Total Projects
 									</div>
 								</div>
 							</CardContent>
 						</Card>
 						<Card>
-							<CardContent className="pt-6">
+							<CardContent className="pt-4 sm:pt-6">
 								<div className="text-center">
-									<Trophy className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
-									<div className="text-2xl font-bold">
+									<Trophy className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 text-yellow-500" />
+									<div className="text-xl sm:text-2xl font-bold">
 										{completedProjectsCount}
 									</div>
-									<div className="text-sm text-gray-500">
-										Completed Projects
+									<div className="text-xs sm:text-sm text-gray-500">
+										Completed
 									</div>
 								</div>
 							</CardContent>
 						</Card>
 						<Card>
-							<CardContent className="pt-6">
+							<CardContent className="pt-4 sm:pt-6">
 								<div className="text-center">
-									<Star className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
-									<div className="text-2xl font-bold">
+									<Star className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 text-yellow-500" />
+									<div className="text-xl sm:text-2xl font-bold">
 										{
 											processedAchievements.filter(
 												(a) => a.unlocked
 											).length
 										}
 									</div>
-									<div className="text-sm text-gray-500">
+									<div className="text-xs sm:text-sm text-gray-500">
 										Achievements
 									</div>
 								</div>
 							</CardContent>
 						</Card>
 						<Card>
-							<CardContent className="pt-6">
+							<CardContent className="pt-4 sm:pt-6">
 								<div className="text-center">
-									<Medal className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-									<div className="text-2xl font-bold">
+									<Medal className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 text-blue-500" />
+									<div className="text-xl sm:text-2xl font-bold">
 										{userData.xp}
 									</div>
-									<div className="text-sm text-gray-500">
+									<div className="text-xs sm:text-sm text-gray-500">
 										Total XP
 									</div>
 								</div>
@@ -301,8 +302,8 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 										<Link
 											href={`/dashboard/profile/quests/${project.id}`}
 										>
-											<CardContent className="pt-6">
-												<div className="flex items-center justify-between mb-2">
+											<CardContent className="pt-4 sm:pt-6">
+												<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
 													<div className="flex items-center gap-2">
 														<div
 															className={`w-3 h-3 rounded-full ${getProjectStatusColor(project.progress)}`}
@@ -320,7 +321,7 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 													value={project.progress}
 													className={`mb-2 ${getProgressBarClass(project.progress)}`}
 												/>
-												<p className="text-md text-gray-500">
+												<p className="text-sm sm:text-md text-gray-500">
 													{project.description ||
 														"No description"}
 												</p>
@@ -330,7 +331,7 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 								))
 							) : (
 								<Card>
-									<CardContent className="py-8 text-center text-gray-500">
+									<CardContent className="py-6 sm:py-8 text-center text-gray-500">
 										<p>
 											No projects yet. Time to start your
 											maker journey!
@@ -346,11 +347,11 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 
 					{/* Achievements Section */}
 					<div>
-						<div className="flex items-center justify-between mb-4">
+						<div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-2">
 							<h3 className="text-xl font-semibold">
 								Achievements
 							</h3>
-							<div className="text-right">
+							<div className="text-center sm:text-right">
 								<p className="text-lg font-semibold">
 									{
 										processedAchievements.filter(
@@ -364,7 +365,7 @@ async function Profile({ params }: { params: Promise<{ username: string }> }) {
 								</p>
 							</div>
 						</div>
-						<ScrollArea className="h-[400px] rounded-md border p-4">
+						<ScrollArea className="h-[300px] sm:h-[400px] rounded-md border p-3 sm:p-4">
 							{processedAchievements.map((achievement) => (
 								<AchievementCard
 									key={achievement.id}

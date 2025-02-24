@@ -37,7 +37,7 @@ export default function StickyNavbar() {
 	}, []);
 
 	return (
-		<nav className="z-50 border-b w-full  border-black/20   block">
+		<nav className="z-50 border-b w-full  border-black/20  block">
 			<div className="bg-background rounded-b-xl px-3 py-3 flex items-start justify-between gap-2">
 				{/* <Link href={"/catalog"} className="flex items-center justify-center rounded-full bg-background h-9 w-9 text-[24px]">
                     <SearchIcon />
